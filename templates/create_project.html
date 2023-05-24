@@ -1,0 +1,80 @@
+{% extends 'base.html' %} {% block content %}
+<section class="page-title bg-1">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="block text-center">
+                    <h1 class="text-capitalize mb-4 text-lg">Create Project</h1>
+                    <ul class="list-inline">
+                        <li class="list-inline-item"><a href="index.html" class="text-white">Home</a></li>
+                        <li class="list-inline-item"><span class="text-white">/</span></li>
+                        <li class="list-inline-item"><a href="{% url 'request' %}" class="text-white text-white-50">request</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="section comment-form-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <form method="post" action="{% url 'request' %}">
+          {% csrf_token %} {{ form.as_p }}
+          <button class="btn btn-main btn-round-full" type="submit">
+            Create
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<table>
+  <thead>
+    <tr>
+      <th>Project Name</th>
+      <th>Status</th>
+      <th>Client</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for project in projects %}
+    <tr>
+      <td>{{ project.title }}</td>
+      <td>{{ project.status }}</td>
+      <td>{{ project.client }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<style>
+  /* styles.css */
+
+  /* Style the table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  /* Style the table headers */
+  th {
+    background-color: #f5f5f5;
+    color: #333;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+  }
+
+  /* Style the table cells */
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* Alternate row colors */
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+</style>
+{% endblock %}

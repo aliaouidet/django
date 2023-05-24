@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<section class="page-title bg-1">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="block text-center">
+          <span class="text-white">Our Teams</span>
+          <h1 class="text-capitalize mb-4 text-lg">Teams List</h1>
+          <ul class="list-inline">
+            <li class="list-inline-item"><a href="index.html" class="text-white">Home</a></li>
+            <li class="list-inline-item"><span class="text-white">/</span></li>
+            <li class="list-inline-item text-white-50">Our Teams</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section blog-wrap bg-gray">
+	<div class="container">
+		<div class="row">
+            {% for team in teams %}
+			<div class="col-lg-6 col-md-6 mb-5">
+				<div class="blog-item">
+					<div class="blog-item-content bg-white p-5">
+						<div class="blog-item-meta bg-gray pt-2 pb-1 px-3" style="  display: flex;
+            justify-content: center;
+            align-items: center;">
+							<span class="text-muted text-capitalize d-inline-block mr-3"><i class="ti-user"></i> {{ team.members.count }}</span>
+							<span class="text-muted text-capitalize d-inline-block mr-3"><i class="ti-save"></i> {{ team.project_set.count }}</span>
+							<span class="text-black text-capitalize d-inline-block mr-3"><i class="ti-time mr-1"></i>{{ team.created_at|date:"d/m/Y" }}</span>
+						</div>
+
+						<h3 class="mt-3 mb-3"><a href="{% url 'team' team.id %}">{{ team.name }}</a></h3>
+						<p class="mb-4">{{ team.description }}</p>
+
+						<a href="{% url 'team' team.id %}" class="btn btn-small btn-main btn-round-full">Learn More</a>
+					</div>
+				</div>
+			</div>
+            {% endfor %}
+		</div>
+    <div class="pagination">
+      {% if teams.has_previous %}
+                <a href="?page={{ teams.previous_page_number }}">Previous</a>
+      {% endif %}
+      <span class="current-page">{{ teams.number }}</span>
+      {% if teams.has_next %}
+      <a href="?page={{ teams.next_page_number }}" class="pagination-link">Next</a>
+      {% endif %}
+  </div>
+
+</section>
+<style>
+ 
+      .pagination {
+          margin-top: 20px;
+          text-align: center;  display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+      
+      .pagination-link {
+          display: inline-block;
+          padding: 5px 10px;
+          margin: 0 5px;
+          color: #333;
+          background-color: #f7f7f7;
+          border-radius: 3px;
+          text-decoration: none;
+      }
+      
+      .current-page {
+          display: inline-block;
+          padding: 5px 10px;
+          margin: 0 5px;
+          color: #fff;
+          background-color: #333;
+          border-radius: 3px;
+      }
+      </style>
+{% endblock %}

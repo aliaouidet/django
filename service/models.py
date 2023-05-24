@@ -1,0 +1,167 @@
+from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.contrib.auth.models import AbstractUser, Group, Permission
+#to create migration files
+#python manage.py makemigrations
+
+#to migrate migration files
+#python manage.py migrate
+
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from .managers import CustomUserManager
+
+
+class User(AbstractUser):
+    username = None
+    email = models.EmailField(_("email address"), unique=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    photo = models.ImageField(upload_to='user_photos', null=True, blank=True)
+    phone = models.CharField(max_length=15)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+    objects = CustomUserManager()
+    def get_photo(self):
+        return f"{self.photo}"
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def __str__(self):
+        return self.email
+
+class Blog(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'is_superuser': True})
+    image = models.ImageField(upload_to='blog_images', null=True, blank=True)
+
+
+    def __str__(self):
+        return self.title
+class BlogComment(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.content
+class Project(models.Model):
+    STATUS_CHOICES = (
+        ('IP', 'In Progress'),
+        ('C', 'Completed'),
+    )
+    
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    client = models.ForeignKey(User, on_delete=models.CASCADE)
+    services = models.ManyToManyField('Service', through='ProjectService')
+    assigned_team = models.ForeignKey('Team', on_delete=models.SET_NULL, null=True)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='IP')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title}"
+  
+
+class Service(models.Model):
+    SERVICE_TYPES = (
+        ('GC', 'Graphic charter'),
+        ('3D', '3D object'),
+        ('SC', 'Scripting'),
+    )
+    name = models.CharField(max_length=50)
+    icon = models.ImageField(upload_to='service_icons', blank=True, null=True)
+    service_type = models.CharField(max_length=2, choices=SERVICE_TYPES)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):      
+        return f"{self.name}"
+    
+
+class ProjectService(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.project.title} - {self.service.name}"
+    
+
+class Team(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+    members = models.ManyToManyField(User, through='TeamMember')
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.name}"
+
+class TeamMember(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_leader = models.BooleanField(default=False)
+    linkedin = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['team'], condition=models.Q(is_leader=True),
+                name='unique_team_leader'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.member.first_name} {self.member.last_name}"
+
+
+class ProjectFile(models.Model):
+    PROJECT_FILE_TYPES = (
+        ('IMG', 'Image'),
+        ('VID', 'Video'),
+        ('PDF', 'PDF Document'),
+    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    file_type = models.CharField(max_length=3, choices=PROJECT_FILE_TYPES)
+    file = models.FileField(upload_to='project_files')
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.project.title} - {self.file_type}"
+
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['project', 'file_type'], name='unique_project_file')
+        ]
+class Testimonial(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    author_name = models.CharField(max_length=100)
+    author_company = models.CharField(max_length=100)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.project.title} - {self.author_name}"
+
+class Article(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.title}"
+    
+class Comment(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.project.title} - {self.user.first_name} {self.user.last_name}"
